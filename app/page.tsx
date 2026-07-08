@@ -39,11 +39,14 @@ function safeEval(expr:string){
 }
 function displaySize(text:string){
   const len=text.length;
-  if(len>24) return "34px";
-  if(len>18) return "42px";
-  if(len>14) return "52px";
-  if(len>10) return "62px";
-  return "76px";
+  if(len>46) return "20px";
+  if(len>38) return "23px";
+  if(len>30) return "26px";
+  if(len>24) return "30px";
+  if(len>18) return "36px";
+  if(len>14) return "42px";
+  if(len>10) return "48px";
+  return "56px";
 }
 
 export default function Home(){
