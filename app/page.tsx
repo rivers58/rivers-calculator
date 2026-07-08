@@ -1,94 +1,77 @@
-'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+"use client";
+import { useEffect, useMemo, useState } from "react";
 
-type RecordItem = { date: string; expression: string; result: string };
-const STORAGE_KEY = 'rivers-calculator-history-v1';
+type Hist = { date: string; expr: string; result: string };
+const keys = ["AC","(",")","÷","7","8","9","×","4","5","6","−","1","2","3","+","←","0",".","="];
+const opMap: Record<string,string> = {"÷":"/","×":"*","−":"-"};
+const STORAGE = "r-calc-history-v13";
 
-function todayLabel() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}年${m}月${day}日`;
+function today(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}/${m}/${day}`;
+}
+function addCommas(num:string){
+  if(!num) return num;
+  const sign=num.startsWith("-")?"-":"";
+  const clean=sign?num.slice(1):num;
+  const [int,dec]=clean.split(".");
+  const formatted=int.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  return sign+formatted+(dec!==undefined?"."+dec:"");
+}
+function formatExpression(expr:string){
+  return expr.replace(/\d+(?:\.\d*)?/g,(m)=>addCommas(m));
+}
+function normalize(expr:string){
+  return expr.replace(/,/g,"").replace(/[÷×−]/g,(m)=>opMap[m] ?? m);
+}
+function safeEval(expr:string){
+  const n=normalize(expr);
+  if(!/^[0-9+\-*/().\s]+$/.test(n)) return null;
+  try{
+    // eslint-disable-next-line no-new-func
+    const v=Function(`"use strict";return (${n})`)();
+    if(typeof v!=="number"||!Number.isFinite(v)) return null;
+    return Number.isInteger(v)?String(v):String(Number(v.toFixed(10))).replace(/\.0+$/,"");
+  }catch{return null;}
+}
+function displaySize(text:string){
+  const len=text.length;
+  if(len>24) return "34px";
+  if(len>18) return "42px";
+  if(len>14) return "52px";
+  if(len>10) return "62px";
+  return "76px";
 }
 
-function normalizeExpression(exp: string) {
-  return exp.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/＋/g, '+');
-}
-
-function formatNumber(n: number) {
-  if (!Number.isFinite(n)) return 'Error';
-  const rounded = Math.round((n + Number.EPSILON) * 1e10) / 1e10;
-  return rounded.toLocaleString('en-US', { maximumFractionDigits: 10 });
-}
-
-function safeCalculate(expression: string) {
-  const clean = normalizeExpression(expression).replace(/,/g, '');
-  if (!clean || !/^[0-9+\-*/().\s]+$/.test(clean)) throw new Error('Invalid expression');
-  // eslint-disable-next-line no-new-func
-  const value = Function(`"use strict"; return (${clean});`)();
-  if (typeof value !== 'number') throw new Error('Invalid result');
-  return formatNumber(value);
-}
-
-export default function Home() {
-  const [input, setInput] = useState('');
-  const [records, setRecords] = useState<RecordItem[]>([]);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setRecords(JSON.parse(saved));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [records, input]);
-
-  const grouped = useMemo(() => {
-    const map = new Map<string, RecordItem[]>();
-    records.forEach((r) => map.set(r.date, [...(map.get(r.date) ?? []), r]));
-    return Array.from(map.entries());
-  }, [records]);
-
-  const press = (key: string) => {
-    if (key === 'C') { setInput(''); return; }
-    if (key === '←') { setInput((v) => v.slice(0, -1)); return; }
-    if (key === '=') {
-      try {
-        const result = safeCalculate(input);
-        setRecords((prev) => [...prev, { date: todayLabel(), expression: input, result }]);
-        setInput(result.replace(/,/g, ''));
-      } catch {
-        setInput('Error');
-      }
+export default function Home(){
+  const [expr,setExpr]=useState("");
+  const [history,setHistory]=useState<Hist[]>([]);
+  useEffect(()=>{try{const raw=localStorage.getItem(STORAGE); if(raw) setHistory(JSON.parse(raw));}catch{}},[]);
+  useEffect(()=>{try{localStorage.setItem(STORAGE,JSON.stringify(history.slice(-80)));}catch{}},[history]);
+  const current=expr?formatExpression(expr):"0";
+  const recent=useMemo(()=>history.slice(-8),[history]);
+  function press(k:string){
+    if(k==="AC"){setExpr("");return;}
+    if(k==="←"){setExpr(v=>v.slice(0,-1));return;}
+    if(k==="="){
+      if(!expr) return;
+      const res=safeEval(expr);
+      if(res===null) return;
+      setHistory(h=>[...h,{date:today(),expr:formatExpression(expr),result:addCommas(res)}]);
+      setExpr(res);
       return;
     }
-    setInput((v) => (v === 'Error' ? key : v + key));
-  };
-
-  const keys = ['C','(',')','←','÷','×','−','+','7','8','9','4','5','6','1','2','3','0','.','='];
-
-  return (
-    <main className="app">
-      <section className="history">
-        <div className="topbar"><span className="gear">⚙</span><span></span></div>
-        {grouped.map(([date, items]) => (
-          <div key={date}>
-            <div className="date">{date}</div>
-            {items.map((item, i) => <div className="line" key={`${date}-${i}`}>{item.expression}={item.result}</div>)}
-          </div>
-        ))}
-        <div className="current">{input || '0'}</div>
-        <div ref={bottomRef} />
-      </section>
-      <section className="keypad">
-        {keys.map((k) => {
-          const className = ['C','(',')','←'].includes(k) ? 'key util' : ['÷','×','−','+'].includes(k) ? 'key op' : k === '=' ? 'key equal' : k === '0' ? 'key zero' : 'key';
-          return <button key={k} className={className} onClick={() => press(k)}>{k}</button>;
-        })}
-      </section>
-    </main>
-  );
+    setExpr(v=>v+k);
+  }
+  return <main className="app"><section className="phone">
+    <div className="display">
+      <div className="date">{today()}</div>
+      <div className="history">{recent.map((h,i)=><div className="history-line" key={i}>{h.expr}={h.result}</div>)}</div>
+      <div className="current" style={{"--current-size":displaySize(current)} as React.CSSProperties}>{current}</div>
+    </div>
+    <div className="keypad">{keys.map(k=><button key={k} className={`key ${["÷","×","−","+","="].includes(k)?"op":(["AC","(",")"].includes(k)?"top":(k==="←"?"back":"num"))}`} onClick={()=>press(k)}>{k}</button>)}</div>
+  </section></main>;
 }

@@ -1,14 +1,14 @@
-import type { Metadata, Viewport } from 'next';
-import './globals.css';
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'R-CALC',
-  description: 'Rivers Calculator',
-  manifest: '/manifest.json',
-  appleWebApp: { capable: true, title: 'R-CALC', statusBarStyle: 'black-translucent' },
+  title: "R-CALC",
+  description: "Rivers Calculator",
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, title: "R-CALC", statusBarStyle: "black-translucent" }
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 1, userScalable: false, themeColor: '#1f1f1f' };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false, themeColor: "#111111" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="zh-Hant"><body>{children}</body></html>;
