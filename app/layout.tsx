@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'R-CALC',
+  title: "R-CALC",
   description: 'Rivers Calculator',
   manifest: '/manifest.json',
   icons: {
