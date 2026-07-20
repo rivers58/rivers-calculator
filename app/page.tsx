@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Hist = { date: string; expr: string; result: string };
 type GroupedHist = { date: string; items: Hist[] };
 
-const keys = ["AC", "(", ")", "÷", "7", "8", "9", "×", "4", "5", "6", "−", "1", "2", "3", "+", "←", "0", ".", "="];
+const keys = ["C", "÷", "×", "←", "7", "8", "9", "−", "4", "5", "6", "+", "1", "2", "3", ".", "(", ")", "0", "="];
 const opMap: Record<string, string> = { "÷": "/", "×": "*", "−": "-" };
 const STORAGE = "r-calc-history-v13";
 
@@ -74,6 +74,7 @@ function groupHistory(records: Hist[]): GroupedHist[] {
 export default function Home() {
   const [expr, setExpr] = useState("");
   const [history, setHistory] = useState<Hist[]>([]);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -91,8 +92,16 @@ export default function Home() {
   const current = expr ? formatExpression(expr) : "0";
   const groupedHistory = useMemo(() => groupHistory(history).slice(-7), [history]);
 
+  useEffect(() => {
+    const el = historyRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [groupedHistory]);
+
   function press(k: string) {
-    if (k === "AC") {
+    if (k === "C") {
       setExpr("");
       return;
     }
@@ -118,7 +127,7 @@ export default function Home() {
     <main className="app">
       <section className="phone">
         <div className="display">
-          <div className="history" aria-label="calculation history">
+          <div ref={historyRef} className="history" aria-label="calculation history">
             {groupedHistory.length === 0 ? (
               <div className="history-group">
                 <div className="history-date">{today()}</div>
@@ -144,7 +153,7 @@ export default function Home() {
           {keys.map((k) => (
             <button
               key={k}
-              className={`key ${["÷", "×", "−", "+", "="].includes(k) ? "op" : ["AC", "(", ")"].includes(k) ? "top" : k === "←" ? "back" : "num"}`}
+              className={`key ${["÷", "×", "−", "+", "="].includes(k) ? "op" : ["C", "(", ")"].includes(k) ? "top" : k === "←" ? "back" : "num"}`}
               onClick={() => press(k)}
               aria-label={k}
             >
