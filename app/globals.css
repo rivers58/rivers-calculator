@@ -39,7 +39,13 @@ button {
 
 .display {
   padding: 22px 24px 12px;
-  background: radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.035), transparent 30%), #050505;
+  background:
+    radial-gradient(
+      circle at 70% 18%,
+      rgba(255, 255, 255, 0.035),
+      transparent 30%
+    ),
+    #050505;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -51,7 +57,7 @@ button {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   padding-right: 2px;
   scrollbar-width: none;
 }
@@ -63,24 +69,29 @@ button {
 .history-group {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .history-date {
   color: #8bc89c;
-  font-size: clamp(20px, 5vw, 31px);
+  font-size: clamp(18px, 4.6vw, 28px);
   font-weight: 400;
   letter-spacing: 0.2px;
   text-align: left;
-  line-height: 1.22;
+  line-height: 1.2;
   margin-bottom: 2px;
 }
 
+/*
+ * V1.6.2:
+ * 歷史計算式縮小兩階，減少換行並提高同畫面可見筆數。
+ * 仍維持整排靠右、正常字重與原本版面配置。
+ */
 .history-line {
   color: rgba(255, 255, 255, 0.92);
-  font-size: clamp(18px, 4.7vw, 28px);
+  font-size: clamp(14px, 3.7vw, 22px);
   font-weight: 400;
-  line-height: 1.18;
+  line-height: 1.16;
   letter-spacing: 0;
   text-align: right;
   white-space: nowrap;
@@ -93,7 +104,7 @@ button {
   font-weight: 400;
   text-align: right;
   line-height: 1.08;
-  margin-top: 12px;
+  margin-top: 10px;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-all;
@@ -114,7 +125,16 @@ button {
   grid-template-rows: repeat(5, 1fr);
   gap: 7px;
   background: #050505;
-  padding: 7px 10px max(10px, env(safe-area-inset-bottom));
+
+  /*
+   * 額外保留 iPhone Home Indicator 安全距離。
+   * env(safe-area-inset-bottom) 會依不同 iPhone 自動調整，
+   * 再加 16px，避免最下排按鍵碰到下方橫條。
+   */
+  padding:
+    7px
+    10px
+    calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
 
 .key {
@@ -158,28 +178,31 @@ button {
   }
 
   .history {
-    gap: 10px;
+    gap: 9px;
   }
 
   .history-group {
-    gap: 5px;
+    gap: 4px;
   }
 
   .history-date {
-    font-size: clamp(18px, 4.6vw, 28px);
+    font-size: clamp(17px, 4.3vw, 25px);
   }
 
   .history-line {
-    font-size: clamp(16px, 4.2vw, 24px);
+    font-size: clamp(13px, 3.5vw, 20px);
   }
 
   .current {
-    margin-top: 8px;
+    margin-top: 7px;
   }
 
   .keypad {
     gap: 5px;
-    padding: 5px 8px max(8px, env(safe-area-inset-bottom));
+    padding:
+      5px
+      8px
+      calc(env(safe-area-inset-bottom, 0px) + 12px);
   }
 
   .key {
